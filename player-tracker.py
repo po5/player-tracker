@@ -55,6 +55,8 @@ def search_and_match(guess, identifier):
     title = guess.get("title", "")
     format = guess.get("type", "other")
     episodes = guess.get("episode", 1)
+    if isinstance(title, list):
+        title = max(title, key=len)
     normalized = normalize(title)
     if not isinstance(episodes, list):
         episodes = [episodes]
