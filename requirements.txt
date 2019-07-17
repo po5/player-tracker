@@ -1,0 +1,6 @@
+strsim
+Unidecode
+requests
+guessit
+psutil
+selectolax
