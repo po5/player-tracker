@@ -18,7 +18,7 @@ def seen(username):
     seen_list = {}
     while True:
         sleep(5)
-        api = requests.get(f"https://myanimelist.net/animelist/{username}/load.json?offset={offset}&status=7")
+        api = session.get(f"https://myanimelist.net/animelist/{username}/load.json?offset={offset}&status=7")
         if "Too Many Requests" == api.text:
             print("Rate limited on MyAnimeList, waiting 10s...")
             sleep(10)
