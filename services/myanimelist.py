@@ -1,9 +1,9 @@
-import sys
 import requests
 import os.path
 import json
 from time import sleep
 from selectolax.parser import HTMLParser
+
 
 def format_to_type(format):
     format_type = "other"
@@ -12,6 +12,7 @@ def format_to_type(format):
     if "TV" in format:
         format_type = "episode"
     return format_type
+
 
 def seen(username):
     offset = 0
@@ -28,30 +29,39 @@ def seen(username):
             print("MyAnimeList error:", api["errors"][0]["message"])
             return False
         for entry in api:
-            seen_list[entry["anime_id"]] = {"completed": entry["status"] == 2, "episodes": entry["anime_num_episodes"], "progress": entry["num_watched_episodes"], "score": entry["score"], "type": format_to_type(entry["anime_media_type_string"]), "titles": [entry["anime_title"]]}
+            seen_list[entry["anime_id"]] = {"completed": entry["status"] == 2, "seasons": {1: {"episodes": entry["anime_num_episodes"], "progress": entry["num_watched_episodes"]}}, "type": format_to_type(entry["anime_media_type_string"]), "titles": [entry["anime_title"]]}
         if len(api) != 300:
             return seen_list
         offset += 300
 
-def update(id, progress, completed):
+
+def update(id, season, progress, completed, format):
     global data
+    edit = session.get(f"https://myanimelist.net/ownlist/anime/{id}/edit?hideLayout")
+    document = HTMLParser(edit.text)
+    score = document.css("#add_anime_score option[selected]")
+    if len(score) > 0:
+        score = int(score[0].attributes["value"] or 0)
+    else:
+        score = 0
+    episodes = int(document.css("#anime_num_episodes")[0].attributes["value"])
+    title = document.css("strong a")[0].text()
     url = "https://myanimelist.net/ownlist/anime/add.json"
     if id in data["list"]:
         url = "https://myanimelist.net/ownlist/anime/edit.json"
-    post = json.dumps({"anime_id": id, "status": 2 if completed else 1, "score": 0 if id not in data["list"] else data["list"][id]["score"], "num_watched_episodes": progress, "csrf_token": data["user"]["csrf"]})
+    post = json.dumps({"anime_id": id, "status": 2 if progress >= episodes else 1, "score": score, "num_watched_episodes": progress, "csrf_token": data["user"]["csrf"]})
     api = session.post(url, data=post).json()
     if api is None:
         if id in data["list"]:
-            data["list"][id]["progress"] = progress
-            data["list"][id]["completed"] = data["list"][id]["episodes"] == progress
+            data["list"][id]["seasons"][season]["progress"] = progress
+            data["list"][id]["completed"] = data["list"][id]["seasons"][season]["episodes"] == progress
         else:
-            data["list"] = seen(data["user"]["name"])
-            if progress >= data["list"][id]["episodes"]:
-                return update(id, progress, True)
+            data["list"][id] = {"completed": progress >= episodes, "seasons": {1: {"episodes": episodes, "progress": progress}}, "type": "episode", "titles": [title]}
         return {"id": id, **data["list"][id]}
     if "errors" in api:
         print("MyAnimeList error:", api["errors"][0]["message"])
         return False
+
 
 def search(name):
     api = requests.get("https://myanimelist.net/search/prefix.json", params={"type": "anime", "keyword": name}).json()
@@ -60,8 +70,9 @@ def search(name):
         return False
     results = {}
     for entry in api["categories"][0]["items"]:
-        results[entry["id"]] = {"episodes": None, "type": format_to_type(entry["payload"]["media_type"]), "titles": [entry["name"]]}
+        results[entry["id"]] = {"seasons": {1: {"episodes": None}}, "type": format_to_type(entry["payload"]["media_type"]), "titles": [entry["name"]]}
     return results
+
 
 def login(username, password):
     login_page = session.get("https://myanimelist.net/login.php")
@@ -85,6 +96,7 @@ def login(username, password):
         return False
     id = int(document.css(".header-profile-button")[0].attributes["style"].replace("background-image:url(https://cdn.myanimelist.net/images/userimages/", "").split(".")[0])
     return {"user": {"id": id, "name": username, "cookies": [{"name": c.name, "value": c.value, "domain": c.domain, "path": c.path} for c in session.cookies], "csrf": csrf_token}}
+
 
 session = requests.session()
 

@@ -2,6 +2,7 @@ import requests
 import os.path
 import json
 
+
 def format_to_type(format):
     format_type = "other"
     if format == "MOVIE":
@@ -9,6 +10,7 @@ def format_to_type(format):
     if "TV" in format:
         format_type = "episode"
     return format_type
+
 
 def seen(**kwargs):
     api = requests.post("https://graphql.anilist.co", headers={"Authorization": f"Bearer {data['token']}"}, json={"variables": {**kwargs}, "query": """
@@ -43,10 +45,11 @@ query ($userName: String, $userId: Int) {
     seen_list = {}
     for lst in api["data"]["MediaListCollection"]["lists"]:
         for entry in lst["entries"]:
-            seen_list[entry["mediaId"]] = {"completed": entry["status"] == "COMPLETED", "episodes": entry["media"]["episodes"], "progress": entry["progress"], "type": format_to_type(entry["media"]["format"]), "titles": list(set(filter(None, entry["media"]["title"].values())))}
+            seen_list[entry["mediaId"]] = {"completed": entry["status"] == "COMPLETED", "seasons": {1: {"episodes": entry["media"]["episodes"], "progress": entry["progress"]}}, "type": format_to_type(entry["media"]["format"]), "titles": list(set(filter(None, entry["media"]["title"].values())))}
     return {"list": seen_list, "user": api["data"]["MediaListCollection"]["user"]}
 
-def update(id, progress, completed):
+
+def update(id, season, progress, completed, format):
     global data
     api = requests.post("https://graphql.anilist.co", headers={"Authorization": f"Bearer {data['token']}"}, json={"variables": {"mediaId": id, "progress": progress, "status": "COMPLETED" if completed else "CURRENT"}, "query": """
 mutation ($mediaId: Int, $progress: Int, $status: MediaListStatus) {
@@ -73,6 +76,7 @@ mutation ($mediaId: Int, $progress: Int, $status: MediaListStatus) {
     data["list"][api["data"]["SaveMediaListEntry"]["mediaId"]] = info
     return {"id": api["data"]["SaveMediaListEntry"]["mediaId"], **info}
 
+
 def search(name):
     api = requests.post("https://graphql.anilist.co", headers={"Authorization": f"Bearer {data['token']}"}, json={"variables": {"search": name}, "query": """
 query ($search: String) {
@@ -95,8 +99,9 @@ query ($search: String) {
         return False
     results = {}
     for entry in api["data"]["anime"]["results"]:
-        results[entry["id"]] = {"episodes": entry["episodes"], "type": format_to_type(entry["format"]), "titles": list(set(filter(None, entry["title"].values())))}
+        results[entry["id"]] = {"seasons": {1: {"episodes": entry["episodes"]}}, "type": format_to_type(entry["format"]), "titles": list(set(filter(None, entry["title"].values())))}
     return results
+
 
 def user(username):
     api = requests.post("https://graphql.anilist.co", headers={"Authorization": f"Bearer {data['token']}"}, json={"variables": {"userName": username}, "query": """
@@ -111,6 +116,7 @@ query ($userName: String!) {
         print("AniList error:", api["errors"][0]["message"])
         return False
     return api["data"]["User"]
+
 
 config_file = os.path.join(os.path.dirname(__file__), "anilist.json")
 

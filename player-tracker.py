@@ -1,4 +1,3 @@
-import sys
 import types
 import string
 import psutil
@@ -11,11 +10,13 @@ from time import sleep
 
 import services
 
+
 def normalize(s):
     for p in string.punctuation:
         s = s.replace(p, '')
 
     return unidecode(s).lower().strip()
+
 
 players = ("sumire", "zuikaku", "vlc", "mpv", "potplayer", "potplayer64", "potplayermini", "potplayermini64")
 extensions = (".ogm", ".avi", ".mp4", ".mkv", ".webm")
@@ -29,6 +30,7 @@ for service in services_list:
         for item in module.data["list"].values():
             for title in item["titles"]:
                 titles.append(str(title))
+
 
 def playing():
     files = []
@@ -45,16 +47,19 @@ def playing():
             files.append({"player": name, "file": path})
     return files
 
+
 def identify(play, expected=[]):
     guess = guessit(play["file"], options={"expected_title": expected})
     identifier = f"{guess.get('title', '')} ({guess.get('year', '')})"
 
     return {"guess": guess, "identifier": identifier}
 
+
 def search_and_match(guess, identifier):
     title = guess.get("title", "")
     format = guess.get("type", "other")
     episodes = guess.get("episode", 1)
+    season = guess.get("season", 1)
     if isinstance(title, list):
         title = max(title, key=len)
     normalized = normalize(title)
@@ -78,7 +83,7 @@ def search_and_match(guess, identifier):
                 score = 0
                 valid_episodes = []
                 for episode in episodes:
-                    if result["episodes"] or 99 >= episode:
+                    if result["seasons"].get(season, {}).get("episodes", None) or 99 >= episode:
                         valid_episodes.append(episode)
                         score = 2
                 if valid_episodes:
@@ -100,25 +105,27 @@ def search_and_match(guess, identifier):
                     continue
                 best_title = min(similar_titles, key=itemgetter("distance"))
                 score += 1 - best_title["distance"]
-                matches.append({"id": id, "title": best_title["title"], "result": result, "episode": max_episode, "completed": max_episode == result["episodes"], "score": score})
+                matches.append({"id": id, "title": best_title["title"], "result": result, "season": season, "episode": max_episode, "completed": season == max(result["seasons"]) and max_episode == result["seasons"].get(season, {}).get("episodes", None), "score": score})
             if not matches:
                 if not cached:
                     print(f"No matches found {title}")
                 continue
             match = max(matches, key=itemgetter("score"))
             if "data" in features and "list" in module.data and match["id"] in module.data["list"]:
-                if module.data["list"][match["id"]]["completed"] or module.data["list"][match["id"]]["progress"] >= match["episode"]:
+                if module.data["list"][match["id"]]["completed"] or module.data["list"][match["id"]]["seasons"].get(season, {}).get("progress", None) >= match["episode"]:
                     if not cached:
-                        print(f"Already in list {match['title']} {'- Episode ' + str(match['episode']) if format != 'movie' else ''}")
+                        print(f"Already in list {match['title']} {'- Season ' + str(season) + ' Episode ' + str(match['episode']) if format != 'movie' else ''}")
                     continue
-            print(f"Our best match is {match['title']} {'- Episode ' + str(match['episode']) if format != 'movie' else ''}")
+            print(f"Our best match is {match['title']} {'- Season ' + str(season) + ' Episode ' + str(match['episode']) if format != 'movie' else ''}")
             if "update" in features:
-                update(module, match)
+                update(module, match, format)
             if "announce" in features:
                 module.announce(match)
 
-def update(module, match):
-    module.update(match["id"], match["episode"], match["completed"])
+
+def update(module, match, format):
+    module.update(match["id"], match["season"], match["episode"], match["completed"], format)
+
 
 while True:
     for play in playing():
