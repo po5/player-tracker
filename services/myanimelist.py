@@ -38,6 +38,10 @@ def seen(username):
 def update(id, season, progress, completed, format):
     global data
     edit = session.get(f"https://myanimelist.net/ownlist/anime/{id}/edit?hideLayout")
+    if "Too Many Requests" == edit.text:
+        print("Rate limited on MyAnimeList, waiting 20s...")
+        sleep(20)
+        return update(id, season, progress, completed, format)
     document = HTMLParser(edit.text)
     score = document.css("#add_anime_score option[selected]")
     if len(score) > 0:

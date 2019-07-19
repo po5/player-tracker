@@ -26,11 +26,11 @@ def seen():
                         for episode in season["episodes"]:
                             if ("plays" in episode and episode["plays"] > 0) or ("completed" in episode and episode["completed"]):
                                 last_episode_season = episode["number"]
-                        seasons[season["number"]] = {"episodes": len(season["episodes"]), "progress": last_episode_season}
+                        seasons[season["number"]] = {"episodes": 99, "progress": last_episode_season}
                 if not seasons:
                     seasons = {1: {"episodes": 99 if watch_type != "movie" else 1, "progress": 0 if watch_list == "watchlist" else 1}}
                 seen_list[entry[watch_type]["ids"]["trakt"]] = {
-                    "completed": seasons[entry["seasons"][len(entry["seasons"])-1]["number"]]["progress"] == len(entry["seasons"][len(entry["seasons"])-1]["episodes"]) if watch_type != "movie" else (False if watch_list == "watchlist" else True),
+                    "completed": (seasons[max(seasons)]["progress"] == seasons[max(seasons)]["episodes"]) if watch_type != "movie" else (False if watch_list == "watchlist" else True),
                     "seasons": seasons,
                     "type": format_to_type(watch_type),
                     "titles": [entry[watch_type]["title"]]

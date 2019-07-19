@@ -72,7 +72,7 @@ mutation ($mediaId: Int, $progress: Int, $status: MediaListStatus) {
     if "errors" in api:
         print("AniList error:", api["errors"][0]["message"])
         return False
-    info = {"completed": api["data"]["SaveMediaListEntry"]["status"] == "COMPLETED", "episodes": api["data"]["SaveMediaListEntry"]["media"]["episodes"], "progress": api["data"]["SaveMediaListEntry"]["progress"], "type": format_to_type(api["data"]["SaveMediaListEntry"]["media"]["format"]), "titles": list(set(filter(None, api["data"]["SaveMediaListEntry"]["media"]["title"].values())))}
+    info = {"completed": api["data"]["SaveMediaListEntry"]["status"] == "COMPLETED", "seasons": {1: {"episodes": api["data"]["SaveMediaListEntry"]["media"]["episodes"], "progress": api["data"]["SaveMediaListEntry"]["progress"]}}, "type": format_to_type(api["data"]["SaveMediaListEntry"]["media"]["format"]), "titles": list(set(filter(None, api["data"]["SaveMediaListEntry"]["media"]["title"].values())))}
     data["list"][api["data"]["SaveMediaListEntry"]["mediaId"]] = info
     return {"id": api["data"]["SaveMediaListEntry"]["mediaId"], **info}
 
