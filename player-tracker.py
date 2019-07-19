@@ -112,7 +112,7 @@ def search_and_match(guess, identifier):
                 continue
             match = max(matches, key=itemgetter("score"))
             if "data" in features and "list" in module.data and match["id"] in module.data["list"]:
-                if module.data["list"][match["id"]]["completed"] or module.data["list"][match["id"]]["seasons"].get(season, {}).get("progress", None) >= match["episode"]:
+                if module.data["list"][match["id"]]["completed"] or module.data["list"][match["id"]]["seasons"].get(season, {}).get("progress", None) == match["episode"]:
                     if not cached:
                         print(f"Already in list {match['title']} {'- Season ' + str(season) + ' Episode ' + str(match['episode']) if format != 'movie' else ''}")
                     continue
