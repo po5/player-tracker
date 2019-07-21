@@ -120,9 +120,8 @@ else:
             break
 
 print("Updating MyAnimeList...")
-list_info = seen(data["user"]["name"])
 
-data = {**data, "list": list_info}
+data = {**data, "list": seen(data["user"]["name"])}
 with open(config_file, "w", encoding="utf-8") as fh:
     json.dump(data, fh, ensure_ascii=False)
 
