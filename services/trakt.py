@@ -46,6 +46,10 @@ def update(id, season, progress, completed, format):
     api = requests.post("https://api.trakt.tv/scrobble/stop", headers={"trakt-api-version": "2", "trakt-api-key": data["user"]["client_id"], "Authorization": f"Bearer {data['user']['access_token']}"}, json=post).json()
     if id not in data["list"]:
         data["list"][id] = {"completed": False, "seasons": {season: {"episodes": 99, "progress": progress}}, "type": format, "titles": []}
+    elif season in data["list"][id]["seasons"]:
+        data["list"][id]["seasons"][season]["progress"] = progress
+    else:
+        data["list"][id]["seasons"][season] = {"episodes": 99, "progress": progress}
     return {"id": id, **data["list"][id]}
 
 
