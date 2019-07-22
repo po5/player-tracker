@@ -37,6 +37,8 @@ for service in services_list:
             for title in item["titles"]:
                 titles.append(str(title))
 
+plays = {}
+
 
 def playing():
     files = []
@@ -50,7 +52,7 @@ def playing():
             path = file.path
             if not path.endswith(extensions):
                 continue
-            files.append({"player": name, "file": path})
+            files.append({"player": name, "pid": proc.pid, "file": path})
     return files
 
 
@@ -134,8 +136,18 @@ def update(module, match, format):
 
 
 while True:
+    old_plays = plays
+    plays = {}
     for play in playing():
-        info = identify(play, titles)
-        search_and_match(**info)
+        if play["pid"] not in plays:
+            plays[play["pid"]] = []
+        plays[play["pid"]].append(play)
+    for pid, old in old_plays.items():
+        if plays.get(pid, None) == old:
+            continue
+        for play in old:
+            info = identify(play, titles)
+            search_and_match(**info)
+
     print("Waiting 30s...")
     sleep(30)
