@@ -16,7 +16,7 @@ pip install -r requirements.txt
 python player-tracker.py
 ```
 
-To disable a service, comment lines in `services/__init__.py`.
+To enable services, uncomment lines in `services/__init__.py`.
 
 ## How it works
 - Builds a list of files opened in your media player

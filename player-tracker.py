@@ -1,6 +1,8 @@
+import sys
 import types
 import string
 import psutil
+import os.path
 import requests
 from similarity.normalized_levenshtein import NormalizedLevenshtein
 from unidecode import unidecode
@@ -22,6 +24,10 @@ players = ("sumire", "zuikaku", "vlc", "mpv", "potplayer", "potplayer64", "potpl
 extensions = (".ogm", ".avi", ".mp4", ".mkv", ".webm")
 titles = []
 services_list = [key for key, obj in services.__dict__.items() if type(obj) is types.ModuleType]
+if not services_list:
+    print("Looks like you haven't enabled any services!")
+    print("Uncomment lines in", os.path.join("services", "__init__.py"), "by removing '#' and try again.")
+    sys.exit()
 services_info = {}
 for service in services_list:
     module = getattr(services, service)
