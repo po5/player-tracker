@@ -1,7 +1,7 @@
 import requests
 import os.path
 import json
-from time import sleep
+import time
 
 
 def format_to_type(format):
@@ -76,7 +76,7 @@ def token(client_id, client_secret):
         time_passed = time.time() - start
         if time_passed > api["expires_in"]:
             return False
-        sleep(api["interval"])
+        time.sleep(api["interval"])
         r = requests.post("https://api.trakt.tv/oauth/device/token", json={"code": api["device_code"], "client_id": client_id, "client_secret": client_secret})
         if r.status_code == 200:
             api = r.json()
