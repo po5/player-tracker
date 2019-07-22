@@ -83,7 +83,7 @@ def search_and_match(guess, identifier):
                 score = 0
                 valid_episodes = []
                 for episode in episodes:
-                    if result["seasons"].get(season, {}).get("episodes", None) or 99 >= episode:
+                    if (result["seasons"].get(season, {}).get("episodes", None) or 99) >= episode:
                         valid_episodes.append(episode)
                         score = 2
                 if valid_episodes:

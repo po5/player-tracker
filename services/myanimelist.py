@@ -43,12 +43,17 @@ def update(id, season, progress, completed, format):
         sleep(20)
         return update(id, season, progress, completed, format)
     document = HTMLParser(edit.text)
+    episodes = document.css("#anime_num_episodes")
+    if not episodes:
+        print("Rate limited on MyAnimeList, waiting 20s...")
+        sleep(20)
+        return update(id, season, progress, completed, format)
+    episodes = int(episodes[0].attributes["value"])
     score = document.css("#add_anime_score option[selected]")
     if len(score) > 0:
         score = int(score[0].attributes["value"] or 0)
     else:
         score = 0
-    episodes = int(document.css("#anime_num_episodes")[0].attributes["value"])
     title = document.css("strong a")[0].text()
     url = "https://myanimelist.net/ownlist/anime/add.json"
     if id in data["list"]:
