@@ -125,7 +125,8 @@ def search_and_match(guess, identifier):
                     continue
             print(f"Our best match is {match['title']} {'- Season ' + str(season) + ' Episode ' + str(match['episode']) if format != 'movie' else ''}")
             if "update" in features:
-                update(module, match, format)
+                if update(module, match, format) is False:
+                    print("Update failed")
             if "announce" in features:
                 module.announce(match)
 

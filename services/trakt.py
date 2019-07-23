@@ -29,7 +29,7 @@ def seen():
                         seasons[season["number"]] = {"episodes": 99, "progress": last_episode_season}
                 if not seasons:
                     seasons = {1: {"episodes": 99 if watch_type != "movie" else 1, "progress": 0 if watch_list == "watchlist" else 1}}
-                seen_list[entry[watch_type]["ids"]["trakt"]] = {
+                seen_list[format_to_type(watch_type)+str(entry[watch_type]["ids"]["trakt"])] = {
                     "completed": (seasons[max(seasons)]["progress"] == seasons[max(seasons)]["episodes"]) if watch_type != "movie" else (False if watch_list == "watchlist" else True),
                     "seasons": seasons,
                     "type": format_to_type(watch_type),
@@ -40,9 +40,10 @@ def seen():
 
 def update(id, season, progress, completed, format):
     global data
-    post = {"movies" if format == "movie" else "shows": {"ids": {"trakt": id}}, "progress": 100}
+    trakt_id = int([o.strip() for m in id.split("movie") for e in m.split("episode") for o in e.split("other")][1])
+    post = {"movie" if format == "movie" else "show": {"ids": {"trakt": trakt_id}}, "progress": 100}
     if progress == 0:
-        post = {"movies" if format == "movie" else "shows": [{"ids": {"trakt": id}}]}
+        post = {"movies" if format == "movie" else "shows": [{"ids": {"trakt": trakt_id}}]}
         api = requests.post("https://api.trakt.tv/sync/watchlist", headers={"trakt-api-version": "2", "trakt-api-key": data["user"]["client_id"], "Authorization": f"Bearer {data['user']['access_token']}"}, json=post).json()
         return {"id": id}
     if format == "episode":
@@ -69,7 +70,7 @@ def search(name):
             sapi = requests.get(f"https://api.trakt.tv/shows/{entry[entry['type']]['ids']['trakt']}/seasons?extended=full", params={"query": name, "fields": "title,translations,aliases"}, headers={"trakt-api-version": "2", "trakt-api-key": data["user"]["client_id"], "Authorization": f"Bearer {data['user']['access_token']}"}).json()
             for season in sapi:
                 seasons[season["number"]] = {"episodes": season["episode_count"]}
-        results[entry[entry["type"]]["ids"]["trakt"]] = {"seasons": seasons, "type": format_to_type(entry["type"]), "titles": [entry[entry["type"]]["title"]]}
+        results[format_to_type(entry["type"])+str(entry[entry["type"]]["ids"]["trakt"])] = {"seasons": seasons, "type": format_to_type(entry["type"]), "titles": [entry[entry["type"]]["title"]]}
     return results
 
 
