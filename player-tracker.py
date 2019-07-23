@@ -20,8 +20,8 @@ def normalize(s):
     return unidecode(s).lower().strip()
 
 
-players = ("sumire", "zuikaku", "vlc", "mpv", "potplayer", "potplayer64", "potplayermini", "potplayermini64")
-extensions = (".ogm", ".avi", ".mp4", ".mkv", ".webm")
+players = ("5kplayer", "ace_player", "allplayer", "baka mplayer", "bestplayer", "bomi", "bsplayer", "divx player", "divx plus player", "gom", "kantaris", "kantarismain", "kmplayer", "kodi", "xbmc", "la", "mplayerc", "mplayerc64", "mpc-qt", "miro", "mpc-be", "mpc-be64", "mpc-hc", "mpc-hc64", "iris", "shoukaku", "mpcstar", "mediaplayerdotnet", "mpv", "mv2player", "mv2playerplus", "potplayer", "potplayer64", "potplayermini", "potplayermini64", "sumire", "zuikaku", "smplayer", "smplayer2", "splash", "splashlite", "splayer", "umplayer", "vlc", "webtorrent", "winamp", "wmplayer", "zplayer")
+extensions = (".3gp", ".avi", ".divx", ".mkv", ".mov", ".mp4", ".mpg", ".ogm", ".rm", ".rmvb", ".webm", ".wmv")
 titles = []
 services_list = [key for key, obj in services.__dict__.items() if type(obj) is types.ModuleType]
 if not services_list:
