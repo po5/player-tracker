@@ -3,7 +3,6 @@ import types
 import string
 import psutil
 import os.path
-import requests
 from similarity.normalized_levenshtein import NormalizedLevenshtein
 from unidecode import unidecode
 from operator import itemgetter

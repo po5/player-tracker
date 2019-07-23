@@ -40,10 +40,17 @@ def seen():
 
 def update(id, season, progress, completed, format):
     global data
-    post = {"show" if format == "episode" else "movie": {"ids": {"trakt": id}}, "progress": 100}
+    post = {"movies" if format == "movie" else "shows": {"ids": {"trakt": id}}, "progress": 100}
+    if progress == 0:
+        post = {"movies" if format == "movie" else "shows": [{"ids": {"trakt": id}}]}
+        api = requests.post("https://api.trakt.tv/sync/watchlist", headers={"trakt-api-version": "2", "trakt-api-key": data["user"]["client_id"], "Authorization": f"Bearer {data['user']['access_token']}"}, json=post).json()
+        return {"id": id}
     if format == "episode":
         post["episode"] = {"season": season, "number": progress}
-    api = requests.post("https://api.trakt.tv/scrobble/stop", headers={"trakt-api-version": "2", "trakt-api-key": data["user"]["client_id"], "Authorization": f"Bearer {data['user']['access_token']}"}, json=post).json()
+    api = requests.post("https://api.trakt.tv/scrobble/stop", headers={"trakt-api-version": "2", "trakt-api-key": data["user"]["client_id"], "Authorization": f"Bearer {data['user']['access_token']}"}, json=post)
+    if api.status_code == 404:
+        return False
+    api = api.json()
     if id not in data["list"]:
         data["list"][id] = {"completed": False, "seasons": {season: {"episodes": 99, "progress": progress}}, "type": format, "titles": []}
     elif season in data["list"][id]["seasons"]:
