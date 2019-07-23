@@ -145,6 +145,7 @@ while True:
             plays[play["pid"]] = []
         if play["file"] not in cycles:
             cycles[play["file"]] = 0
+            print("Queuing", os.path.basename(play["file"]), "for list update")
         cycles[play["file"]] += 1
         plays[play["pid"]].append(play)
     for pid, old in old_plays.items():
