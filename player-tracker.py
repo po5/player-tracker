@@ -37,6 +37,7 @@ for service in services_list:
                 titles.append(str(title))
 
 plays = {}
+cycles = {}
 
 
 def playing():
@@ -137,17 +138,25 @@ def update(module, match, format):
 
 while True:
     old_plays = plays
+    old_cycles = dict(cycles)
     plays = {}
     for play in playing():
         if play["pid"] not in plays:
             plays[play["pid"]] = []
+        if play["file"] not in cycles:
+            cycles[play["file"]] = 0
+        cycles[play["file"]] += 1
         plays[play["pid"]].append(play)
     for pid, old in old_plays.items():
         if plays.get(pid, None) == old:
             continue
         for play in old:
-            info = identify(play, titles)
-            search_and_match(**info)
+            if play["file"] in cycles and cycles[play["file"]] >= 3:
+                info = identify(play, titles)
+                search_and_match(**info)
+    for file, count in old_cycles.items():
+        if count == cycles[file]:
+            del cycles[file]
 
     print("Waiting 30s...")
     sleep(30)
