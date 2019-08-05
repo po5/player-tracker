@@ -4,3 +4,4 @@ requests
 guessit
 psutil
 selectolax
+PyGetWindow

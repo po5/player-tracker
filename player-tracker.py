@@ -1,3 +1,4 @@
+import re
 import sys
 import types
 import string
@@ -11,6 +12,10 @@ from time import sleep
 
 import services
 
+try:
+    import pygetwindow as gw
+except NotImplementedError:
+    gw = None
 
 def normalize(s):
     for p in string.punctuation:
@@ -21,6 +26,8 @@ def normalize(s):
 
 players = ("5kplayer", "ace_player", "allplayer", "baka mplayer", "bestplayer", "bomi", "bsplayer", "divx player", "divx plus player", "gom", "kantaris", "kantarismain", "kmplayer", "kodi", "xbmc", "la", "mplayerc", "mplayerc64", "mpc-qt", "miro", "mpc-be", "mpc-be64", "mpc-hc", "mpc-hc64", "iris", "shoukaku", "mpcstar", "mediaplayerdotnet", "mpv", "mv2player", "mv2playerplus", "potplayer", "potplayer64", "potplayermini", "potplayermini64", "sumire", "zuikaku", "smplayer", "smplayer2", "splash", "splashlite", "splayer", "umplayer", "vlc", "webtorrent", "winamp", "wmplayer", "zplayer")
 extensions = (".3gp", ".avi", ".divx", ".mkv", ".mov", ".mp4", ".mpg", ".ogm", ".rm", ".rmvb", ".webm", ".wmv")
+browsers = r"^(.+) \(Private\)(?: - Brave)?|(.+) - Brave|^(.+) \(Incognito\)(?: - Google Chrome)?|(.+) - Google Chrome|^(.+) - Internet Explorer(?: - \[InPrivate\])?|^(?:Mozilla Firefox|Firefox Developer Edition)|(.+) - (?:Mozilla Firefox|Firefox Developer Edition)(?: \(Private Browsing\))?|^(.+) - Opera(?: \(Private\))?|^(.+) - Waterfox(?: \(Private Browsing\))?"
+streaming = r"AnimeLab - (.+)|(.+) - streaming -.* ADN|(.+) - Anime News Network|(^.+?Episode \d+).* - Watch on Crunchyroll|(?:Watch )?(.+) Anime.* (?:on|-) Funimation|Stream (.+) on HIDIV|(.+) // VIZ|(.+) - Watch on VRV|(.+) (?:auf|on|sur) Wakanim\.TV.*"
 services_list = [key for key, obj in services.__dict__.items() if type(obj) is types.ModuleType]
 if not services_list:
     print("Looks like you haven't enabled any services!")
@@ -48,6 +55,14 @@ def playing():
             if not path.endswith(extensions):
                 continue
             files.append({"player": name, "pid": proc.pid, "file": path})
+    if gw:
+        browser_title = re.match(browsers, gw.getActiveWindow().title)
+        if browser_title:
+            for btitle in filter(None, browser_title.groups()):
+                streaming_title = re.match(streaming, btitle)
+                if streaming_title:
+                    for title in filter(None, streaming_title.groups()):
+                        files.append({"player": "browser", "pid": title, "file": title})
     return files
 
 
