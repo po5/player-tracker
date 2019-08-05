@@ -21,7 +21,6 @@ def normalize(s):
 
 players = ("5kplayer", "ace_player", "allplayer", "baka mplayer", "bestplayer", "bomi", "bsplayer", "divx player", "divx plus player", "gom", "kantaris", "kantarismain", "kmplayer", "kodi", "xbmc", "la", "mplayerc", "mplayerc64", "mpc-qt", "miro", "mpc-be", "mpc-be64", "mpc-hc", "mpc-hc64", "iris", "shoukaku", "mpcstar", "mediaplayerdotnet", "mpv", "mv2player", "mv2playerplus", "potplayer", "potplayer64", "potplayermini", "potplayermini64", "sumire", "zuikaku", "smplayer", "smplayer2", "splash", "splashlite", "splayer", "umplayer", "vlc", "webtorrent", "winamp", "wmplayer", "zplayer")
 extensions = (".3gp", ".avi", ".divx", ".mkv", ".mov", ".mp4", ".mpg", ".ogm", ".rm", ".rmvb", ".webm", ".wmv")
-titles = []
 services_list = [key for key, obj in services.__dict__.items() if type(obj) is types.ModuleType]
 if not services_list:
     print("Looks like you haven't enabled any services!")
@@ -31,11 +30,6 @@ services_info = {}
 for service in services_list:
     module = getattr(services, service)
     services_info[service] = dir(module)
-    if "data" in services_info[service] and "list" in module.data:
-        for item in module.data["list"].values():
-            for title in item["titles"]:
-                titles.append(str(title))
-                titles.append("".join([c for c in str(title) if c.isalpha() or c.isdigit() or c==" "]).rstrip())
 
 plays = {}
 cycles = {}
@@ -57,9 +51,13 @@ def playing():
     return files
 
 
-def identify(play, expected=[]):
-    guess = guessit(play["file"], options={"expected_title": expected})
+def identify(play):
+    guess = guessit(play["file"])
     identifier = f"{guess.get('title', '')} ({guess.get('year', '')})"
+    if "episode" not in guess:
+        guess2 = guessit(os.path.basename(play["file"]))
+        if "episode" in guess2:
+            guess["episode"] = guess2["episode"]
 
     return {"guess": guess, "identifier": identifier}
 
@@ -88,6 +86,9 @@ def search_and_match(guess, identifier):
                 search = module.search(title)
                 module.cache[identifier] = search
             matches = []
+            if not search:
+                print(f"No results on {service}")
+                return
             for id, result in search.items():
                 score = 0
                 valid_episodes = []
@@ -103,7 +104,10 @@ def search_and_match(guess, identifier):
                     score += .3
                 if "data" in features and "list" in module.data:
                     if id in module.data["list"]:
-                        score += .1
+                        if module.data["list"][id]["completed"]:
+                            score -= 1
+                        else:
+                            score += .1
                 similar_titles = []
                 for similar_title in result["titles"]:
                     distance = NormalizedLevenshtein().distance(normalized, normalize(similar_title))
@@ -154,7 +158,7 @@ while True:
             continue
         for play in old:
             if play["file"] in cycles and cycles[play["file"]] >= 3:
-                info = identify(play, titles)
+                info = identify(play)
                 search_and_match(**info)
     for file, count in old_cycles.items():
         if count == cycles[file]:
