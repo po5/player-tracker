@@ -35,7 +35,7 @@ def seen(username):
         offset += 300
 
 
-def update(id, season, progress, completed, format):
+def update(id, season, progress, completed, format, media_type):
     global data
     edit = session.get(f"https://myanimelist.net/ownlist/anime/{id}/edit?hideLayout")
     if "Too Many Requests" == edit.text:
@@ -59,7 +59,13 @@ def update(id, season, progress, completed, format):
     if id in data["list"]:
         url = "https://myanimelist.net/ownlist/anime/edit.json"
     post = json.dumps({"anime_id": id, "status": 2 if progress >= episodes else 1, "score": score, "num_watched_episodes": progress, "csrf_token": data["user"]["csrf"]})
-    api = session.post(url, data=post).json()
+    api = session.post(url, data=post)
+    try:
+        api = api.json()
+    except JSONDecodeError:
+        print("Rate limited on MyAnimeList, waiting 20s...")
+        sleep(20)
+        return update(id, season, progress, completed, format)
     if api is None:
         if id in data["list"]:
             data["list"][id]["seasons"][season]["progress"] = progress

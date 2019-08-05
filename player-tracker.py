@@ -35,6 +35,7 @@ for service in services_list:
         for item in module.data["list"].values():
             for title in item["titles"]:
                 titles.append(str(title))
+                titles.append("".join([c for c in str(title) if c.isalpha() or c.isdigit() or c==" "]).rstrip())
 
 plays = {}
 cycles = {}
@@ -113,7 +114,7 @@ def search_and_match(guess, identifier):
                     continue
                 best_title = min(similar_titles, key=itemgetter("distance"))
                 score += 1 - best_title["distance"]
-                matches.append({"id": id, "title": best_title["title"], "result": result, "season": season, "episode": max_episode, "completed": season == max(result["seasons"]) and max_episode == result["seasons"].get(season, {}).get("episodes", None), "score": score})
+                matches.append({"id": id, "title": best_title["title"], "result": result, "season": season, "episode": max_episode, "completed": season == max(result["seasons"]) and max_episode == result["seasons"].get(season, {}).get("episodes", None), "type": result["type"], "score": score})
             if not matches:
                 if not cached:
                     print(f"No matches found {title}")
@@ -133,7 +134,7 @@ def search_and_match(guess, identifier):
 
 
 def update(module, match, format):
-    module.update(match["id"], match["season"], match["episode"], match["completed"], format)
+    module.update(match["id"], match["season"], match["episode"], match["completed"], format, match["type"])
 
 
 while True:

@@ -49,7 +49,7 @@ query ($userName: String, $userId: Int) {
     return {"list": seen_list, "user": api["data"]["MediaListCollection"]["user"]}
 
 
-def update(id, season, progress, completed, format):
+def update(id, season, progress, completed, format, media_type):
     global data
     api = requests.post("https://graphql.anilist.co", headers={"Authorization": f"Bearer {data['token']}"}, json={"variables": {"mediaId": id, "progress": progress, "status": "COMPLETED" if completed else "CURRENT"}, "query": """
 mutation ($mediaId: Int, $progress: Int, $status: MediaListStatus) {
@@ -93,7 +93,12 @@ query ($search: String) {
     }
   }
 }
-"""}).json()
+"""})
+    try:
+        api = api.json()
+    except JSONDecodeError:
+        print("AniList error:", api.text)
+        return False
     if "errors" in api:
         print("AniList error:", api["errors"][0]["message"])
         return False

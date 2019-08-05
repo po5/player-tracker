@@ -35,7 +35,7 @@ def seen():
         url = api["links"]["next"]
 
 
-def update(id, season, progress, completed, format):
+def update(id, season, progress, completed, format, media_type):
     global data
     status = {"status": "current", "progress": progress}
     if id not in data["list"]:
