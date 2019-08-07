@@ -41,13 +41,13 @@ def update(id, season, progress, completed, format, media_type):
     if "Too Many Requests" == edit.text:
         print("Rate limited on MyAnimeList, waiting 20s...")
         sleep(20)
-        return update(id, season, progress, completed, format)
+        return update(id, season, progress, completed, format, media_type)
     document = HTMLParser(edit.text)
     episodes = document.css("#anime_num_episodes")
     if not episodes:
         print("Rate limited on MyAnimeList, waiting 20s...")
         sleep(20)
-        return update(id, season, progress, completed, format)
+        return update(id, season, progress, completed, format, media_type)
     episodes = int(episodes[0].attributes["value"])
     score = document.css("#add_anime_score option[selected]")
     if len(score) > 0:
@@ -65,7 +65,7 @@ def update(id, season, progress, completed, format, media_type):
     except JSONDecodeError:
         print("Rate limited on MyAnimeList, waiting 20s...")
         sleep(20)
-        return update(id, season, progress, completed, format)
+        return update(id, season, progress, completed, format, media_type)
     if api is None:
         if id in data["list"]:
             data["list"][id]["seasons"][season]["progress"] = progress
