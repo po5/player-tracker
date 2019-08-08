@@ -62,7 +62,7 @@ def update(id, season, progress, completed, format, media_type):
     api = session.post(url, data=post)
     try:
         api = api.json()
-    except JSONDecodeError:
+    except:
         print("Rate limited on MyAnimeList, waiting 20s...")
         sleep(20)
         return update(id, season, progress, completed, format, media_type)
