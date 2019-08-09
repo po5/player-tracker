@@ -56,13 +56,15 @@ def playing():
                 continue
             files.append({"player": name, "pid": proc.pid, "file": path})
     if gw:
-        browser_title = re.match(browsers, gw.getActiveWindow().title)
-        if browser_title:
-            for btitle in filter(None, browser_title.groups()):
-                streaming_title = re.match(streaming, btitle)
-                if streaming_title:
-                    for title in filter(None, streaming_title.groups()):
-                        files.append({"player": "browser", "pid": title, "file": title})
+        window = gw.getActiveWindow()
+        if window:
+            browser_title = re.match(browsers, window.title)
+            if browser_title:
+                for btitle in filter(None, browser_title.groups()):
+                    streaming_title = re.match(streaming, btitle)
+                    if streaming_title:
+                        for title in filter(None, streaming_title.groups()):
+                            files.append({"player": "browser", "pid": title, "file": title})
     return files
 
 
