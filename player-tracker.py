@@ -50,11 +50,14 @@ def playing():
             name = name[:-4]
         if name not in players:
             continue
-        for file in proc.open_files():
-            path = file.path
-            if not path.endswith(extensions):
-                continue
-            files.append({"player": name, "pid": proc.pid, "file": path})
+        try:
+            for file in proc.open_files():
+                path = file.path
+                if not path.endswith(extensions):
+                    continue
+                files.append({"player": name, "pid": proc.pid, "file": path})
+        except:
+            continue
     if gw:
         window = gw.getActiveWindow()
         if window:
